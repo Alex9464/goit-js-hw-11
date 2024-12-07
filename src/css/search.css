@@ -1,3 +1,19 @@
+#loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  font-size: 20px;
+}
+
+.sl-spinner {
+  border: 5px solid #fff !important;
+}
+
 #search-form {
     text-align: center;
     margin-top: 36px;

@@ -18,7 +18,7 @@ export async function fetchImages(query, page = 1, perPage = 20) {
       },
     });
 
-    if (response.data.hits.length === 0) {
+    if (response.data.totalHits === 0) {
       iziToast.warning({ message: 'No images found. Please try another query!' });
       return null;
     }
@@ -26,6 +26,6 @@ export async function fetchImages(query, page = 1, perPage = 20) {
     return response.data;
   } catch (error) {
     iziToast.error({ message: 'Failed to fetch images. Please try again later!' });
-    throw new Error(error);
+    throw error;
   }
 }

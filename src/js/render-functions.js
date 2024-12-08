@@ -1,29 +1,37 @@
-/**
- * @param {Object} image
- * @returns {string}
- */
-  
-  /**
-   @param {Array} images
-   */
-  
-  export function renderGallery(images) {
-    const gallery = document.querySelector('#gallery');
-    gallery.innerHTML = images.map(createImageCard).join('');
+export function renderGallery(images, container) {
+  if (!images || images.length === 0) {
+    container.innerHTML = '';
+    return;
   }
 
-  export function createImageCard(image) {
-    return `
+  const markup = images
+    .map(
+      ({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => `
       <div class="photo-card">
-        <a href="${image.largeImageURL}">
-          <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
+        <a href="${largeImageURL}" class="gallery-link">
+          <img src="${webformatURL}" alt="${tags}" loading="lazy" />
         </a>
         <div class="info">
-          <p><b>Likes:</b> ${image.likes}</p>
-          <p><b>Views:</b> ${image.views}</p>
-          <p><b>Comments:</b> ${image.comments}</p>
-          <p><b>Downloads:</b> ${image.downloads}</p>
+          <p class="info-item">
+            <b>Likes:</b> ${likes}
+          </p>
+          <p class="info-item">
+            <b>Views:</b> ${views}
+          </p>
+          <p class="info-item">
+            <b>Comments:</b> ${comments}
+          </p>
+          <p class="info-item">
+            <b>Downloads:</b> ${downloads}
+          </p>
         </div>
       </div>
-    `;
-  }
+    `
+    )
+    .join('');
+  container.innerHTML += markup;
+}
+
+export function clearGallery(container) {
+  container.innerHTML = '';
+}

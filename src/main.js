@@ -1,22 +1,23 @@
 import { fetchImages } from './js/pixabay-api.js';
 import { renderGallery, clearGallery } from './js/render-functions.js';
 import iziToast from 'izitoast';
+import "izitoast/dist/css/iziToast.min.css";
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import 'izitoast/dist/css/iziToast.min.css';
 
 const form = document.querySelector('#search-form');
 const galleryContainer = document.querySelector('.gallery');
-const loadMoreButton = document.createElement('button');
-loadMoreButton.textContent = 'Load More';
-loadMoreButton.classList.add('load-more');
-loadMoreButton.style.display = 'none';
-document.body.appendChild(loadMoreButton);
+const loadMoreButton = document.querySelector('.load-more');
 
-const loadingIndicator = document.querySelector('#loading');
-let lightbox = null;
 let currentPage = 1;
 let currentQuery = '';
+let totalHits = 0;
+let imagesPerPage = 20;
+
+const lightbox = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -29,63 +30,49 @@ form.addEventListener('submit', async (event) => {
 
   currentQuery = query;
   currentPage = 1;
-
   clearGallery(galleryContainer);
 
-  loadingIndicator.style.display = 'block';
-
   try {
-    const data = await fetchImages(currentQuery, currentPage);
-    loadingIndicator.style.display = 'none';
+    const data = await fetchImages(currentQuery, currentPage, imagesPerPage);
 
     if (data && data.hits.length > 0) {
+      totalHits = data.totalHits;
       renderGallery(data.hits, galleryContainer);
-      iziToast.success({ message: `Found ${data.totalHits} images!` });
-      loadMoreButton.style.display = 'block';
-      initLightbox();
-    } else {
-      iziToast.warning({ message: 'No images found. Try another query.' });
-      loadMoreButton.style.display = 'none';
-    }
+      lightbox.refresh();
+
+      iziToast.success({ message: `Found ${totalHits} images!` });
+
+      if (data.hits.length < imagesPerPage || currentPage * imagesPerPage >= totalHits) {
+        loadMoreButton.style.display = 'none';
+      } else {
+        loadMoreButton.style.display = 'block';
+      }
+    } 
   } catch (error) {
-    loadingIndicator.style.display = 'none';
-    iziToast.error({ message: 'Failed to fetch images. Please try again later.' });
     console.error(error);
   }
 });
 
 loadMoreButton.addEventListener('click', async () => {
   currentPage += 1;
-  loadingIndicator.style.display = 'block';
 
   try {
-    const data = await fetchImages(currentQuery, currentPage);
-    loadingIndicator.style.display = 'none';
+    const data = await fetchImages(currentQuery, currentPage, imagesPerPage);
 
     if (data && data.hits.length > 0) {
       renderGallery(data.hits, galleryContainer);
-      iziToast.info({ message: 'Loaded more images.' });
-      refreshLightbox();
+      lightbox.refresh();
+
+      if (currentPage * imagesPerPage >= totalHits) {
+        loadMoreButton.style.display = 'none';
+        iziToast.info({ message: 'No more images to load!' });
+      }
     } else {
       iziToast.info({ message: 'No more images to load!' });
       loadMoreButton.style.display = 'none';
     }
   } catch (error) {
-    loadingIndicator.style.display = 'none';
-    iziToast.error({ message: 'Failed to load more images.' });
+    iziToast.error({ message: 'Failed to fetch more images. Please try again later!' });
     console.error(error);
   }
 });
-
-function initLightbox() {
-  if (lightbox) {
-    lightbox.destroy();
-  }
-  lightbox = new SimpleLightbox('.gallery a', { captionsData: 'alt', captionDelay: 250 });
-}
-
-function refreshLightbox() {
-  if (lightbox) {
-    lightbox.refresh();
-  }
-}
